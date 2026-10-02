@@ -1,0 +1,21 @@
+model Complaint {
+  id          String          @id @default(uuid())
+  title       String
+  description String
+  location    String
+  category    String
+  status      ComplaintStatus @default(PENDING)
+  isDeleted   Boolean         @default(false)
+  
+  citizenId   String
+  citizen     User            @relation("CitizenComplaints", fields: [citizenId], references: [id])
+  
+  staffId     String?
+  staff       User?           @relation("StaffComplaints", fields: [staffId], references: [id])
+  
+  payments    Payment[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([status, category])
+}

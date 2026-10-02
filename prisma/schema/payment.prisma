@@ -1,0 +1,25 @@
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  transactionId String        @unique
+  status        PaymentStatus @default(PENDING)
+  
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  
+  complaintId   String?
+  complaint     Complaint?    @relation(fields: [complaintId], references: [id])
+  
+  createdAt     DateTime      @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+}

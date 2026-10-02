@@ -1,0 +1,18 @@
+enum  Role {
+  CITIZEN
+  STAFF
+  ADMIN
+}
+
+enum ComplaintStatus{
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
