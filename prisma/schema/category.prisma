@@ -1,0 +1,14 @@
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  slaHours    Int      @default(72)
+  serviceFee  Decimal? @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+
+  departmentId String
+  department   Department  @relation(fields: [departmentId], references: [id])
+  complaints   Complaint[]
+
+  @@index([departmentId])
+}

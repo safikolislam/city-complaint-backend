@@ -1,0 +1,11 @@
+model Attachment {
+  id          String    @id @default(uuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  url         String
+  publicId    String
+  mimeType    String
+  createdAt   DateTime  @default(now())
+
+  @@index([complaintId])
+}

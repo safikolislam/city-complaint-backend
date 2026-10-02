@@ -1,0 +1,11 @@
+model Feedback {
+  id          String    @id @default(uuid())
+  complaintId String    @unique
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  citizenId   String
+  citizen     User      @relation(fields: [citizenId], references: [id])
+  rating      Int
+  createdAt   DateTime  @default(now())
+
+  @@index([citizenId])
+}

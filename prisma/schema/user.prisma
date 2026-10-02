@@ -1,14 +1,30 @@
 model User {
-  id                String      @id @default(uuid())
-  name              String
-  email             String      @unique
-  password          String
-  role              Role        @default(CITIZEN)
-  isDeleted         Boolean     @default(false)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  citizenComplaints Complaint[] @relation("CitizenComplaints")
-  staffCompliants   Complaint[] @relation("StaffComplaints")
-  payments          Payment[]
-  auditLogs         AuditLog[]
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String?
+  passwordHash  String
+  role          Role           @default(CITIZEN)
+  staffPosition StaffPosition?
+  isActive      Boolean        @default(true)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  citizenComplaints    Complaint[]              @relation("CitizenComplaints")
+  staffComplaints      Complaint[]              @relation("StaffComplaints")
+  technicianComplaints Complaint[]              @relation("TechnicianComplaints")
+  statusChanges        ComplaintStatusHistory[] @relation("StatusChanges")
+  payments             Payment[]
+  feedbacks            Feedback[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  refreshTokens        RefreshToken[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([role])
+  @@index([departmentId, staffPosition])
 }

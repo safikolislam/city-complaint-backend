@@ -1,18 +1,57 @@
-enum  Role {
+enum Role {
   CITIZEN
   STAFF
   ADMIN
 }
 
-enum ComplaintStatus{
+enum StaffPosition {
+  OFFICER
+  TECHNICIAN
+  MANAGER
+}
+
+enum ComplaintType {
+  COMPLAINT
+  SERVICE_REQUEST
+}
+
+enum ComplaintStatus {
+  PENDING_PAYMENT
   PENDING
+  ASSIGNED
   IN_PROGRESS
   RESOLVED
+  CLOSED
+  REOPENED
   REJECTED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 enum PaymentStatus {
   PENDING
   PAID
   FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentGateway {
+  STRIPE
+  SSLCOMMERZ
+  BKASH
+}
+
+enum NotificationType {
+  COMPLAINT_ASSIGNED
+  STATUS_CHANGED
+  SLA_BREACH
+  PAYMENT_SUCCESS
+  FEEDBACK_REQUEST
 }

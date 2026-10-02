@@ -1,21 +1,46 @@
 model Complaint {
   id          String          @id @default(uuid())
+  type        ComplaintType   @default(COMPLAINT)
   title       String
   description String
-  location    String
-  category    String
   status      ComplaintStatus @default(PENDING)
-  isDeleted   Boolean         @default(false)
-  
-  citizenId   String
-  citizen     User            @relation("CitizenComplaints", fields: [citizenId], references: [id])
-  
-  staffId     String?
-  staff       User?           @relation("StaffComplaints", fields: [staffId], references: [id])
-  
-  payments    Payment[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  priority    Priority        @default(MEDIUM)
 
-  @@index([status, category])
+  address   String
+  latitude  Float?
+  longitude Float?
+
+  categoryId   String
+  category     Category   @relation(fields: [categoryId], references: [id])
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  citizenId    String
+  citizen      User    @relation("CitizenComplaints", fields: [citizenId], references: [id])
+  staffId      String?
+  staff        User?   @relation("StaffComplaints", fields: [staffId], references: [id])
+  technicianId String?
+  technician   User?   @relation("TechnicianComplaints", fields: [technicianId], references: [id])
+
+  dueAt      DateTime?
+  resolvedAt DateTime?
+  closedAt   DateTime?
+
+  attachments   Attachment[]
+  statusHistory ComplaintStatusHistory[]
+  payments      Payment[]
+  feedback      Feedback?
+  notifications Notification[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([citizenId])
+  @@index([staffId])
+  @@index([technicianId])
+  @@index([departmentId, status])
+  @@index([status, priority])
+  @@index([dueAt])
+  @@index([latitude, longitude])
 }

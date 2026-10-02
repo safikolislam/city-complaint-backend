@@ -1,25 +1,22 @@
 model Payment {
-  id            String        @id @default(uuid())
-  amount        Float
-  transactionId String        @unique
-  status        PaymentStatus @default(PENDING)
-  
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-  
-  complaintId   String?
-  complaint     Complaint?    @relation(fields: [complaintId], references: [id])
-  
-  createdAt     DateTime      @default(now())
-}
+  id          String    @id @default(uuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
 
-model AuditLog {
-  id        String   @id @default(uuid())
-  action    String
-  details   String
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  
+  amount        Decimal        @db.Decimal(10, 2)
+  currency      String         @default("BDT")
+  gateway       PaymentGateway
+  status        PaymentStatus  @default(PENDING)
+  transactionId String         @unique
+  gatewayRef    String?
+  rawResponse   Json?
+  paidAt        DateTime?
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([complaintId])
+  @@index([userId, status])
 }
