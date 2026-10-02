@@ -3,7 +3,6 @@ import status from "http-status";
 import { Prisma } from "../../prisma/generated/prisma/client";
 import AppError from "../utils/AppError";
 
-
 const globalErrorHandler = (
 	err: unknown,
 	_req: Request,

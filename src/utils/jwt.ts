@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import jwt, { type SignOptions } from "jsonwebtoken";
 
 export type TJwtPayload = {
@@ -15,4 +16,8 @@ export const createToken = (
 
 export const verifyToken = (token: string, secret: string) => {
 	return jwt.verify(token, secret) as TJwtPayload;
+};
+
+export const hashToken = (token: string) => {
+	return crypto.createHash("sha256").update(token).digest("hex");
 };
