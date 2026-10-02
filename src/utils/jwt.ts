@@ -1,25 +1,18 @@
-import type { JwtPayload, SignOptions } from "jsonwebtoken";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 
-const createToken = (
-	payload: JwtPayload,
+export type TJwtPayload = {
+	id: string;
+	role: "CITIZEN" | "STAFF" | "ADMIN";
+};
+
+export const createToken = (
+	payload: TJwtPayload,
 	secret: string,
-	expiresIn: SignOptions,
+	expiresIn: string,
 ) => {
-	const token = jwt.sign(payload, secret, { expiresIn } as SignOptions);
-	return token;
+	return jwt.sign(payload, secret, { expiresIn } as SignOptions);
 };
 
-const verifyToken = (token: string, secret: string) => {
-	try {
-		const verifiedToken = jwt.verify(token, secret);
-		return verifiedToken;
-	} catch (error: any) {
-		throw new Error(error.message);
-	}
-};
-
-export const jwtUtils = {
-	createToken,
-	verifyToken,
+export const verifyToken = (token: string, secret: string) => {
+	return jwt.verify(token, secret) as TJwtPayload;
 };
