@@ -6,10 +6,9 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"types": ["node"],
 		"outDir": "dist",
 		"rootDir": "./"
 	},
-	"include": ["src/**/*", "prisma/seed.ts"],
+	"include": ["src/**/*", "api/**/*", "prisma/seed.ts"],
 	"exclude": ["node_modules", "dist"]
 }
