@@ -5,8 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
-		"build": "tsc",
-		"seed":"tsx prisma/seed.ts",
+		"build": "tsup",
+		"seed": "tsx prisma/seed.ts",
 		"start": "node dist/server.js",
 		"format:check": "npx @biomejs/biome format ./src",
 		"format:fix": "npx @biomejs/biome format --write ./src",
@@ -21,9 +21,10 @@
 		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
-		"@types/node": "^26.6.3",
+		"@types/node": "^26.6.4",
 		"@types/pg": "^8.23.1",
 		"prisma": "^7.10.0",
+		"tsup": "^8.5.1",
 		"tsx": "^4.23.15",
 		"typescript": "^7.0.2"
 	},
