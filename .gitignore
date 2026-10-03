@@ -3,3 +3,5 @@ dist
 /generated/prisma
 .env
 dist
+
+.vercel

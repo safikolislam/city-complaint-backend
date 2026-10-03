@@ -2,10 +2,10 @@
 	"name": "city-complaint-backend",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
+	"main": "dist/server.js",
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
-		"build": "tsup",
+		"build": "prisma generate && tsup src/server.ts --format cjs --clean",
 		"seed": "tsx prisma/seed.ts",
 		"start": "node dist/server.js",
 		"format:check": "npx @biomejs/biome format ./src",
