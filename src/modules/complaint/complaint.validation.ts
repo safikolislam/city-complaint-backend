@@ -29,11 +29,46 @@ const updateComplaintSchema = z.object({
 		}),
 });
 
+const assignComplaintSchema = z.object({
+	body: z
+		.object({
+			staffId: z.uuid().optional(),
+			technicianId: z.uuid().optional(),
+		})
+		.strict()
+		.refine((d) => d.staffId || d.technicianId, {
+			message: "staffId or technicianId is required",
+		}),
+});
 
 
+const changeStatusSchema = z.object({
+	body: z
+		.object({
+			status: z.enum([
+				"IN_PROGRESS",
+				"RESOLVED",
+				"CLOSED",
+				"REOPENED",
+				"REJECTED",
+			]),
+			note: z.string().max(500).optional(),
+		})
+		.strict(),
+});
 
+
+const cancelSchema = z.object({
+	body: z
+		.object({ note: z.string().max(500).optional() })
+		.strict()
+		.optional(),
+});
 
 export const ComplaintValidation = {
 	createComplaintSchema,
-  updateComplaintSchema,
+	updateComplaintSchema,
+	assignComplaintSchema,
+	changeStatusSchema,
+	cancelSchema,
 };

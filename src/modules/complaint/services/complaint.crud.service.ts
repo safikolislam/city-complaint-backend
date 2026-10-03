@@ -1,29 +1,24 @@
 import status from "http-status";
-import type { Prisma } from "../../../prisma/generated/prisma/client";
-import { prisma } from "../../lib/prisma";
-import AppError from "../../utils/AppError";
+import type { Prisma } from "../../../../prisma/generated/prisma/client";
+import { prisma } from "../../../lib/prisma";
+import AppError from "../../../utils/AppError";
 import type {
 	IAuthUser,
 	ICreateComplaintPayload,
 	IUpdateComplaintPayload,
-} from "./complaint.interface";
+	TPriority,
+	TStatus,
+} from "../complaint.interface";
+import {
+	buildMeta,
+	getPagination,
+	PRIORITIES,
+	SORT_FIELDS,
+	STATUSES,
+	visibilityFilter,
+} from "./complaint.shared";
 
-const STATUSES = [
-	"PENDING_PAYMENT",
-	"PENDING",
-	"ASSIGNED",
-	"IN_PROGRESS",
-	"RESOLVED",
-	"CLOSED",
-	"REOPENED",
-	"REJECTED",
-	"CANCELLED",
-] as const;
-const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-const SORT_FIELDS = ["createdAt", "dueAt", "priority", "status"] as const;
-
-type TStatus = (typeof STATUSES)[number];
-type TPriority = (typeof PRIORITIES)[number];
+const EDITABLE_STATUSES: string[] = ["PENDING_PAYMENT", "PENDING"];
 
 const createComplaint = async (
 	user: IAuthUser,
@@ -73,30 +68,11 @@ const createComplaint = async (
 	});
 };
 
-
-const visibilityFilter = async (
-	user: IAuthUser,
-): Promise<Prisma.ComplaintWhereInput> => {
-	if (user.role === "ADMIN") return {};
-	if (user.role === "CITIZEN") return { citizenId: user.id };
-
-	const staff = await prisma.user.findUnique({
-		where: { id: user.id },
-		select: { departmentId: true },
-	});
-	if (!staff?.departmentId) {
-		throw new AppError(status.FORBIDDEN, "Staff has no department assigned");
-	}
-	return { departmentId: staff.departmentId };
-};
-
 const getAllComplaints = async (
 	user: IAuthUser,
 	query: Record<string, unknown>,
 ) => {
-	const page = Math.max(1, Number(query.page) || 1);
-	const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
-	const skip = (page - 1) * limit;
+	const { page, limit, skip } = getPagination(query);
 
 	const sortBy = SORT_FIELDS.includes(query.sortBy as never)
 		? (query.sortBy as (typeof SORT_FIELDS)[number])
@@ -118,10 +94,11 @@ const getAllComplaints = async (
 		where.categoryId = query.categoryId;
 	}
 	if (typeof query.search === "string" && query.search.trim()) {
+		const q = query.search.trim();
 		where.OR = [
-			{ title: { contains: query.search.trim(), mode: "insensitive" } },
-			{ description: { contains: query.search.trim(), mode: "insensitive" } },
-			{ address: { contains: query.search.trim(), mode: "insensitive" } },
+			{ title: { contains: q, mode: "insensitive" } },
+			{ description: { contains: q, mode: "insensitive" } },
+			{ address: { contains: q, mode: "insensitive" } },
 		];
 	}
 
@@ -147,10 +124,7 @@ const getAllComplaints = async (
 		prisma.complaint.count({ where }),
 	]);
 
-	return {
-		data,
-		meta: { page, limit, total, totalPage: Math.ceil(total / limit) },
-	};
+	return { data, meta: buildMeta(page, limit, total) };
 };
 
 const getComplaintById = async (user: IAuthUser, id: string) => {
@@ -165,14 +139,11 @@ const getComplaintById = async (user: IAuthUser, id: string) => {
 		},
 	});
 
-
 	if (!complaint) {
 		throw new AppError(status.NOT_FOUND, "Complaint not found");
 	}
 	return complaint;
 };
-
-const EDITABLE_STATUSES = ["PENDING_PAYMENT", "PENDING"];
 
 
 const findOwnEditableComplaint = async (user: IAuthUser, id: string) => {
@@ -217,7 +188,7 @@ const updateComplaint = async (
 const deleteComplaint = async (user: IAuthUser, id: string) => {
 	const complaint = await findOwnEditableComplaint(user, id);
 
-	
+
 	await prisma.$transaction([
 		prisma.complaint.update({
 			where: { id },
@@ -237,7 +208,7 @@ const deleteComplaint = async (user: IAuthUser, id: string) => {
 	return null;
 };
 
-export const ComplaintService = {
+export const ComplaintCrudService = {
 	createComplaint,
 	getAllComplaints,
 	getComplaintById,
