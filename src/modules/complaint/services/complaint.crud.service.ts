@@ -48,7 +48,7 @@ const createComplaint = async (
 			categoryId: category.id,
 			departmentId: category.departmentId,
 			citizenId: user.id,
-			
+
 			dueAt: needsPayment
 				? null
 				: new Date(Date.now() + category.slaHours * 60 * 60 * 1000),
@@ -145,7 +145,6 @@ const getComplaintById = async (user: IAuthUser, id: string) => {
 	return complaint;
 };
 
-
 const findOwnEditableComplaint = async (user: IAuthUser, id: string) => {
 	const complaint = await prisma.complaint.findFirst({
 		where: { id, citizenId: user.id, deletedAt: null },
@@ -187,7 +186,6 @@ const updateComplaint = async (
 
 const deleteComplaint = async (user: IAuthUser, id: string) => {
 	const complaint = await findOwnEditableComplaint(user, id);
-
 
 	await prisma.$transaction([
 		prisma.complaint.update({

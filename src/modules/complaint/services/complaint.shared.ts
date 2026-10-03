@@ -57,7 +57,6 @@ export const visibilityFilter = async (
 	return { departmentId: staff.departmentId };
 };
 
-
 export const getStaffProfile = async (userId: string) => {
 	const u = await prisma.user.findUnique({
 		where: { id: userId },

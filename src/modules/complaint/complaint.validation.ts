@@ -41,7 +41,6 @@ const assignComplaintSchema = z.object({
 		}),
 });
 
-
 const changeStatusSchema = z.object({
 	body: z
 		.object({
@@ -56,7 +55,6 @@ const changeStatusSchema = z.object({
 		})
 		.strict(),
 });
-
 
 const cancelSchema = z.object({
 	body: z

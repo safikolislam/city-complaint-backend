@@ -23,7 +23,6 @@ const assignComplaint = async (
 	});
 	if (!complaint) throw new AppError(status.NOT_FOUND, "Complaint not found");
 
-
 	if (actor.role === "STAFF") {
 		if (actor.departmentId !== complaint.departmentId) {
 			throw new AppError(status.FORBIDDEN, "Not your department");
@@ -61,7 +60,6 @@ const assignComplaint = async (
 
 	if (payload.staffId) await checkAssignee(payload.staffId, false);
 	if (payload.technicianId) await checkAssignee(payload.technicianId, true);
-
 
 	return prisma.$transaction(async (tx) => {
 		const updated = await tx.complaint.updateMany({
@@ -129,7 +127,6 @@ const changeStatus = async (
 
 	const isAssignee =
 		complaint.staffId === user.id || complaint.technicianId === user.id;
-
 
 	if (to === "CLOSED" || to === "REOPENED") {
 		if (user.role !== "CITIZEN" || complaint.citizenId !== user.id) {

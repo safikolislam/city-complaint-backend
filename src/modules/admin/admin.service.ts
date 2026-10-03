@@ -3,7 +3,6 @@ import type { Prisma } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppError";
 
-
 const ROLES = ["CITIZEN", "STAFF", "ADMIN"] as const;
 type TRole = (typeof ROLES)[number];
 
@@ -74,7 +73,6 @@ const updateUserRole = async (
 
 	const isStaff = payload.role === "STAFF";
 
-	
 	const [updated] = await prisma.$transaction([
 		prisma.user.update({
 			where: { id: targetId },

@@ -4,7 +4,6 @@ import validateRequest from "../../middlewares/validateRequest";
 import { AdminController } from "./admin.controller";
 import { AdminValidation } from "./admin.validation";
 
-
 const router = Router();
 
 router.use(auth("ADMIN"));

@@ -1,6 +1,5 @@
 import type { TStatus } from "./complaint.interface";
 
-
 export const TRANSITIONS: Record<TStatus, TStatus[]> = {
 	PENDING_PAYMENT: ["PENDING", "CANCELLED"],
 	PENDING: ["ASSIGNED", "REJECTED", "CANCELLED"],
