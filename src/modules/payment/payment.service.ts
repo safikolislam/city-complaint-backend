@@ -19,7 +19,6 @@ const initiatePayment = async (user: IAuthUser, complaintId: string) => {
 		throw new AppError(status.CONFLICT, "This request does not need payment");
 	}
 
-
 	const transactionId = `TXN-${randomUUID()}`;
 	const amount = complaint.category.serviceFee;
 
@@ -59,7 +58,6 @@ const initiatePayment = async (user: IAuthUser, complaintId: string) => {
 	return { paymentId: payment.id, bkashURL: result.bkashURL };
 };
 
-
 const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 	if (!paymentID) throw new AppError(status.BAD_REQUEST, "paymentID missing");
 
@@ -67,7 +65,6 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 		where: { gatewayRef: paymentID },
 	});
 	if (!payment) throw new AppError(status.NOT_FOUND, "Payment not found");
-
 
 	if (payment.status !== "PENDING") return payment;
 
@@ -89,7 +86,6 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 		});
 	}
 
-
 	if (Number(exec.amount) !== Number(payment.amount)) {
 		return prisma.payment.update({
 			where: { id: payment.id },
@@ -103,7 +99,6 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 	});
 
 	return prisma.$transaction(async (tx) => {
-		
 		const marked = await tx.payment.updateMany({
 			where: { id: payment.id, status: "PENDING" },
 			data: {

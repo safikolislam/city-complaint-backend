@@ -1,14 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodType } from "zod";
 
-type TParsed = {
-	body: Request["body"];
-};
-
-const validateRequest = (schema: ZodType<TParsed>) => {
+const validateRequest = (schema: ZodType) => {
 	return (req: Request, res: Response, next: NextFunction) => {
 		const result = schema.safeParse({
-			body: req.body,
+			body: req.body ?? {},
 			query: req.query,
 			params: req.params,
 		});
@@ -25,7 +21,10 @@ const validateRequest = (schema: ZodType<TParsed>) => {
 			return;
 		}
 
-		req.body = result.data.body;
+		const data = result.data as { body?: Request["body"] };
+		if (data.body !== undefined) {
+			req.body = data.body;
+		}
 		next();
 	};
 };

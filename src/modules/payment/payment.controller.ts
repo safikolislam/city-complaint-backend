@@ -16,7 +16,6 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
 const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 	const payment = await PaymentService.handleCallback(
 		String(req.query.paymentID ?? ""),

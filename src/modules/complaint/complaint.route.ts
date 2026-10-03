@@ -14,7 +14,12 @@ router.post(
 );
 
 router.get("/", auth(), ComplaintController.getAllComplaints);
+
+
+router.get("/my-assigned", auth("STAFF"), ComplaintController.getMyAssigned);
+
 router.get("/:id", auth(), ComplaintController.getComplaintById);
+
 router.patch(
 	"/:id",
 	auth("CITIZEN"),
@@ -23,4 +28,26 @@ router.patch(
 );
 
 router.delete("/:id", auth("CITIZEN"), ComplaintController.deleteComplaint);
+
+router.post(
+	"/:id/assign",
+	auth("STAFF", "ADMIN"),
+	validateRequest(ComplaintValidation.assignComplaintSchema),
+	ComplaintController.assignComplaint,
+);
+
+router.patch(
+	"/:id/status",
+	auth("STAFF", "ADMIN", "CITIZEN"),
+	validateRequest(ComplaintValidation.changeStatusSchema),
+	ComplaintController.changeStatus,
+);
+
+router.post(
+	"/:id/cancel",
+	auth("CITIZEN"),
+	validateRequest(ComplaintValidation.cancelSchema),
+	ComplaintController.cancelComplaint,
+);
+
 export const complaintRoutes = router;
