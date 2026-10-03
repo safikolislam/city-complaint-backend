@@ -2,7 +2,11 @@ import status from "http-status";
 import type { Prisma } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppError";
-import type { IAuthUser, ICreateComplaintPayload } from "./complaint.interface";
+import type {
+	IAuthUser,
+	ICreateComplaintPayload,
+	IUpdateComplaintPayload,
+} from "./complaint.interface";
 
 const STATUSES = [
 	"PENDING_PAYMENT",
@@ -36,7 +40,6 @@ const createComplaint = async (
 	const needsPayment = category.serviceFee !== null;
 	const initialStatus = needsPayment ? "PENDING_PAYMENT" : "PENDING";
 
-
 	return prisma.complaint.create({
 		data: {
 			type: needsPayment ? "SERVICE_REQUEST" : "COMPLAINT",
@@ -50,7 +53,7 @@ const createComplaint = async (
 			categoryId: category.id,
 			departmentId: category.departmentId,
 			citizenId: user.id,
-		
+			
 			dueAt: needsPayment
 				? null
 				: new Date(Date.now() + category.slaHours * 60 * 60 * 1000),
@@ -169,8 +172,75 @@ const getComplaintById = async (user: IAuthUser, id: string) => {
 	return complaint;
 };
 
+const EDITABLE_STATUSES = ["PENDING_PAYMENT", "PENDING"];
+
+
+const findOwnEditableComplaint = async (user: IAuthUser, id: string) => {
+	const complaint = await prisma.complaint.findFirst({
+		where: { id, citizenId: user.id, deletedAt: null },
+	});
+	if (!complaint) {
+		throw new AppError(status.NOT_FOUND, "Complaint not found");
+	}
+	if (!EDITABLE_STATUSES.includes(complaint.status)) {
+		throw new AppError(
+			status.CONFLICT,
+			`Complaint cannot be changed once it is ${complaint.status}`,
+		);
+	}
+	return complaint;
+};
+
+const updateComplaint = async (
+	user: IAuthUser,
+	id: string,
+	payload: IUpdateComplaintPayload,
+) => {
+	await findOwnEditableComplaint(user, id);
+
+	return prisma.complaint.update({
+		where: { id },
+		data: payload,
+		select: {
+			id: true,
+			title: true,
+			description: true,
+			address: true,
+			latitude: true,
+			longitude: true,
+			status: true,
+			updatedAt: true,
+		},
+	});
+};
+
+const deleteComplaint = async (user: IAuthUser, id: string) => {
+	const complaint = await findOwnEditableComplaint(user, id);
+
+	
+	await prisma.$transaction([
+		prisma.complaint.update({
+			where: { id },
+			data: { deletedAt: new Date(), status: "CANCELLED" },
+		}),
+		prisma.complaintStatusHistory.create({
+			data: {
+				complaintId: id,
+				fromStatus: complaint.status,
+				toStatus: "CANCELLED",
+				note: "Deleted by citizen",
+				changedById: user.id,
+			},
+		}),
+	]);
+
+	return null;
+};
+
 export const ComplaintService = {
 	createComplaint,
 	getAllComplaints,
 	getComplaintById,
+	updateComplaint,
+	deleteComplaint,
 };

@@ -16,5 +16,12 @@ router.post(
 
 router.get("/", auth(), ComplaintController.getAllComplaints);
 router.get("/:id", auth(), ComplaintController.getComplaintById);
+router.patch(
+	"/:id",
+	auth("CITIZEN"),
+	validateRequest(ComplaintValidation.updateComplaintSchema),
+	ComplaintController.updateComplaint,
+);
 
+router.delete("/:id", auth("CITIZEN"), ComplaintController.deleteComplaint);
 export const complaintRoutes = router;

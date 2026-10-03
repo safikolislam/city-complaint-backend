@@ -41,8 +41,34 @@ const getComplaintById = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+
+const updateComplaint = catchAsync(async (req: Request, res: Response) => {
+	const result = await ComplaintService.updateComplaint(
+		req.user!,
+		String(req.params.id),
+		req.body,
+	);
+
+	sendResponse(res, {
+		statusCode: status.OK,
+		message: "Complaint updated successfully",
+		data: result,
+	});
+});
+
+const deleteComplaint = catchAsync(async (req: Request, res: Response) => {
+	await ComplaintService.deleteComplaint(req.user!, String(req.params.id));
+
+	sendResponse(res, {
+		statusCode: status.OK,
+		message: "Complaint deleted successfully",
+		data: null,
+	});
+});
 export const ComplaintController = {
 	createComplaint,
 	getAllComplaints,
 	getComplaintById,
+  updateComplaint,
+  deleteComplaint
 };
