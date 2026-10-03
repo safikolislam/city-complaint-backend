@@ -9,6 +9,7 @@ import config from "./config";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import { authRoutes } from "./modules/auth/auth.route";
 import { UserRoutes } from "./modules/user/user.route";
+import { complaintRoutes } from "./modules/complaint/complaint.route";
 
 const app: Application = express();
 app.use(
@@ -26,6 +27,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users",UserRoutes)
+app.use("/api/v1/users",UserRoutes);
+app.use("/api/v1/complaints",complaintRoutes)
 app.use(globalErrorHandler);
 export default app;

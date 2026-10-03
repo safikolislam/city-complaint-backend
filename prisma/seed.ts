@@ -1,45 +1,66 @@
-import "dotenv/config";
 import bcrypt from "bcryptjs";
-import config from "../src/config";
 import { prisma } from "../src/lib/prisma";
 
-const seedAdmin = async () => {
-	const email = process.env.SEED_ADMIN_EMAIL;
-	const password = process.env.SEED_ADMIN_PASSWORD;
+async function main() {
 
-	if (!email || !password) {
-		throw new Error
-	}
-
-	const passwordHash = await bcrypt.hash(
-		password,
-		Number(config.bcrypt_salt_rounds),
-	);
-
-	const admin = await prisma.user.upsert({
-		where: { email },
-		update: { role: "ADMIN", isActive: true, deletedAt: null },
+	const passwordHash = await bcrypt.hash("Admin@12345", 10);
+	await prisma.user.upsert({
+		where: { email: "admin@city.gov" },
+		update: {},
 		create: {
-			name: process.env.SEED_ADMIN_NAME ?? "City Admin",
-			email,
+			name: "City Admin",
+			email: "admin@city.gov",
 			passwordHash,
 			role: "ADMIN",
 		},
-		select: { id: true, email: true, role: true },
 	});
+	console.log("Admin ready");
 
-	console.log("Admin ready:", admin.email, `(${admin.role})`);
-};
 
-const main = async () => {
-	await seedAdmin();
-};
+	const departments = [
+		{
+			name: "Water Supply",
+			categories: [
+				{ name: "Water Leakage", slaHours: 24 },
+				{ name: "New Water Connection", slaHours: 120, serviceFee: 500 },
+			],
+		},
+		{
+			name: "Roads & Infrastructure",
+			categories: [
+				{ name: "Pothole", slaHours: 72 },
+				{ name: "Streetlight Failure", slaHours: 48 },
+			],
+		},
+		{
+			name: "Waste Management",
+			categories: [{ name: "Garbage Not Collected", slaHours: 24 }],
+		},
+	];
+
+	for (const d of departments) {
+		const dept = await prisma.department.upsert({
+			where: { name: d.name },
+			update: {},
+			create: { name: d.name },
+		});
+
+		for (const c of d.categories) {
+			await prisma.category.upsert({
+				where: { name: c.name },
+				update: {},
+				create: { ...c, departmentId: dept.id },
+			});
+		}
+		console.log(`Department ready: ${d.name}`);
+	}
+
+	console.log("Seed done");
+}
 
 main()
-	.catch((error) => {
-		console.error("Seeding failed:", error);
-		process.exitCode = 1;
+	.catch((e) => {
+		console.error(e);
+		process.exit(1);
 	})
-	.finally(async () => {
-		await prisma.$disconnect();
-	});
+	.finally(() => prisma.$disconnect());
