@@ -13,10 +13,9 @@ import { authRoutes } from "./modules/auth/auth.route";
 import { categoryRoutes } from "./modules/category/category.route";
 import { complaintRoutes } from "./modules/complaint/complaint.route";
 import { UserRoutes } from "./modules/user/user.route";
-
+import { paymentRoutes } from "./modules/payment/payment.route";
 
 const app: Application = express();
-
 
 app.set("trust proxy", 1);
 
@@ -27,7 +26,6 @@ app.use(
 		credentials: true,
 	}),
 );
-
 
 app.use(
 	"/api",
@@ -43,7 +41,6 @@ app.use(
 		},
 	}),
 );
-
 
 const authLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -72,7 +69,7 @@ app.use("/api/v1/users", UserRoutes);
 app.use("/api/v1/complaints", complaintRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1/admin", adminRoutes);
-
-app.use(globalErrorHandler); // সবার শেষে
+app.use("api/v1/payments",paymentRoutes)
+app.use(globalErrorHandler); 
 
 export default app;
