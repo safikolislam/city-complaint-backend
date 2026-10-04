@@ -8,7 +8,7 @@ A modern REST API for managing **city complaints and paid public service request
 
 * 🚀 **Live API:** `https://city-complaint-backend-seven.vercel.app/`
 * 📡 **API Base URL:** `https://<your-vercel-domain>.vercel.app/api/v1`
-* 📚 **Postman Collection:** `postman/city-complaint-backend.postman_collection.json`
+* 📚 **Postman docs:** `https://documenter.getpostman.com/view/45368212/2sBYHNXPFp`
 
 ---
 
@@ -384,6 +384,6 @@ Backend Developer | Node.js | TypeScript | PostgreSQL | Prisma
 
 
 
-⭐ **If you find this project useful, consider giving it a star!**
+
 
 
