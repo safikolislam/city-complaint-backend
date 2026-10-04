@@ -69,7 +69,7 @@ app.use("/api/v1/users", UserRoutes);
 app.use("/api/v1/complaints", complaintRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1/admin", adminRoutes);
-app.use("api/v1/payments", paymentRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 app.use(globalErrorHandler);
 
 export default app;
