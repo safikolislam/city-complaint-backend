@@ -9,6 +9,7 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
 		req.user!,
 		req.body.complaintId,
 	);
+
 	sendResponse(res, {
 		statusCode: status.OK,
 		message: "Payment initiated, open bkashURL to pay",
@@ -21,9 +22,15 @@ const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 		String(req.query.paymentID ?? ""),
 		String(req.query.status ?? ""),
 	);
-	sendResponse(res, {
-		statusCode: status.OK,
-		message: `Payment ${payment.status.toLowerCase()}`,
+
+	const paid = payment.status === "PAID";
+
+
+	res.status(paid ? status.OK : status.PAYMENT_REQUIRED).json({
+		success: paid,
+		message: paid
+			? "Payment successful"
+			: `Payment ${payment.status.toLowerCase()}`,
 		data: { id: payment.id, status: payment.status },
 	});
 });
@@ -33,6 +40,7 @@ const getPaymentById = catchAsync(async (req: Request, res: Response) => {
 		req.user!,
 		String(req.params.id),
 	);
+
 	sendResponse(res, {
 		statusCode: status.OK,
 		message: "Payment retrieved successfully",

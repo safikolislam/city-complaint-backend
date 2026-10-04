@@ -6,6 +6,23 @@ import AppError from "../../utils/AppError";
 import { createBkashPayment, executeBkashPayment } from "../../utils/bkash";
 import type { IAuthUser } from "../complaint/complaint.interface";
 
+
+const markUnpaid = async (
+	id: string,
+	newStatus: "FAILED" | "CANCELLED",
+	rawResponse: unknown,
+) => {
+	await prisma.payment.updateMany({
+		where: { id, status: "PENDING" },
+		data: {
+			status: newStatus,
+			
+			rawResponse: JSON.parse(JSON.stringify(rawResponse ?? null)),
+		},
+	});
+	return prisma.payment.findUniqueOrThrow({ where: { id } });
+};
+
 const initiatePayment = async (user: IAuthUser, complaintId: string) => {
 	const complaint = await prisma.complaint.findFirst({
 		where: { id: complaintId, citizenId: user.id, deletedAt: null },
@@ -22,28 +39,40 @@ const initiatePayment = async (user: IAuthUser, complaintId: string) => {
 	const transactionId = `TXN-${randomUUID()}`;
 	const amount = complaint.category.serviceFee;
 
-	const payment = await prisma.payment.create({
-		data: {
-			complaintId,
-			userId: user.id,
-			amount,
-			gateway: "BKASH",
-			transactionId,
-		},
+
+	const payment = await prisma.$transaction(async (tx) => {
+		await tx.payment.updateMany({
+			where: { complaintId, status: "PENDING" },
+			data: { status: "CANCELLED" },
+		});
+		return tx.payment.create({
+			data: {
+				complaintId,
+				userId: user.id,
+				amount,
+				gateway: "BKASH",
+				transactionId,
+			},
+		});
 	});
 
-	const result = await createBkashPayment({
-		amount: amount.toString(),
-		invoiceNumber: transactionId,
-		callbackURL: `${config.app_url}/api/v1/payments/callback`,
-		payerReference: user.id,
-	});
+	let result: Awaited<ReturnType<typeof createBkashPayment>>;
+	try {
+		result = await createBkashPayment({
+			amount: amount.toString(),
+			invoiceNumber: transactionId,
+			callbackURL: `${config.app_url}/api/v1/payments/callback`,
+			payerReference: user.id,
+		});
+	} catch (error) {
+		await markUnpaid(payment.id, "FAILED", {
+			error: error instanceof Error ? error.message : "bKash request failed",
+		});
+		throw new AppError(status.BAD_GATEWAY, "Could not reach bKash, try again");
+	}
 
 	if (!result.bkashURL || !result.paymentID) {
-		await prisma.payment.update({
-			where: { id: payment.id },
-			data: { status: "FAILED", rawResponse: result },
-		});
+		await markUnpaid(payment.id, "FAILED", result);
 		throw new AppError(
 			status.BAD_GATEWAY,
 			result.statusMessage ?? "bKash error",
@@ -66,31 +95,32 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 	});
 	if (!payment) throw new AppError(status.NOT_FOUND, "Payment not found");
 
+
 	if (payment.status !== "PENDING") return payment;
 
 	if (bkashStatus === "cancel" || bkashStatus === "failure") {
-		return prisma.payment.update({
-			where: { id: payment.id },
-			data: { status: bkashStatus === "cancel" ? "CANCELLED" : "FAILED" },
+		return markUnpaid(
+			payment.id,
+			bkashStatus === "cancel" ? "CANCELLED" : "FAILED",
+			{ callbackStatus: bkashStatus },
+		);
+	}
+
+	let exec: Awaited<ReturnType<typeof executeBkashPayment>>;
+	try {
+		exec = await executeBkashPayment(paymentID);
+	} catch (error) {
+		return markUnpaid(payment.id, "FAILED", {
+			error: error instanceof Error ? error.message : "bKash execute failed",
 		});
 	}
 
-	const exec = await executeBkashPayment(paymentID);
 	const ok =
 		exec.statusCode === "0000" && exec.transactionStatus === "Completed";
-
-	if (!ok) {
-		return prisma.payment.update({
-			where: { id: payment.id },
-			data: { status: "FAILED", rawResponse: exec },
-		});
-	}
+	if (!ok) return markUnpaid(payment.id, "FAILED", exec);
 
 	if (Number(exec.amount) !== Number(payment.amount)) {
-		return prisma.payment.update({
-			where: { id: payment.id },
-			data: { status: "FAILED", rawResponse: exec },
-		});
+		return markUnpaid(payment.id, "FAILED", exec);
 	}
 
 	const complaint = await prisma.complaint.findUniqueOrThrow({
@@ -104,10 +134,11 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 			data: {
 				status: "PAID",
 				paidAt: new Date(),
-				rawResponse: exec,
+				rawResponse: JSON.parse(JSON.stringify(exec)),
 			},
 		});
-		if (marked.count === 0) return payment;
+		if (marked.count === 0)
+			return tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
 
 		await tx.complaint.updateMany({
 			where: { id: complaint.id, status: "PENDING_PAYMENT" },
