@@ -2,22 +2,11 @@
 
 A modern REST API for managing **city complaints and paid public service requests**. Citizens can submit complaints, departments can assign and resolve them, and administrators can manage the entire platform with secure role-based access.
 
-<div align="center">
 
-![Node.js](https://img.shields.io/badge/Node.js-20+-green?logo=node.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript)
-![Express](https://img.shields.io/badge/Express.js-black?logo=express)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?logo=postgresql)
-![Prisma](https://img.shields.io/badge/Prisma-7-black?logo=prisma)
-![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)
-
-</div>
-
----
 
 ## 🔗 Links
 
-* 🚀 **Live API:** `https://<your-vercel-domain>.vercel.app`
+* 🚀 **Live API:** `https://city-complaint-backend-seven.vercel.app/`
 * 📡 **API Base URL:** `https://<your-vercel-domain>.vercel.app/api/v1`
 * 📚 **Postman Collection:** `postman/city-complaint-backend.postman_collection.json`
 
@@ -200,7 +189,7 @@ Base URL:
 ### Installation
 
 ```bash
-git clone https://github.com/safikolislam/city-complaint-backend.git
+git clone https://github.com/safikolislam/city-complaint-backend
 
 cd city-complaint-backend
 
@@ -215,9 +204,7 @@ Create a `.env` file:
 PORT=5000
 NODE_ENV=development
 
-APP_URL=http://localhost:5000
-BACKEND_URL=http://localhost:5000
-CLIENT_URL=http://localhost:3000
+
 
 DATABASE_URL=postgresql://user:password@localhost:5432/city_complaint
 
