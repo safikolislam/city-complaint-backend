@@ -15,7 +15,6 @@ router.post(
 
 router.get("/", auth(), ComplaintController.getAllComplaints);
 
-
 router.get("/my-assigned", auth("STAFF"), ComplaintController.getMyAssigned);
 
 router.get("/:id", auth(), ComplaintController.getComplaintById);

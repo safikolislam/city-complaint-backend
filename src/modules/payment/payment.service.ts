@@ -6,7 +6,6 @@ import AppError from "../../utils/AppError";
 import { createBkashPayment, executeBkashPayment } from "../../utils/bkash";
 import type { IAuthUser } from "../complaint/complaint.interface";
 
-
 const markUnpaid = async (
 	id: string,
 	newStatus: "FAILED" | "CANCELLED",
@@ -16,7 +15,7 @@ const markUnpaid = async (
 		where: { id, status: "PENDING" },
 		data: {
 			status: newStatus,
-			
+
 			rawResponse: JSON.parse(JSON.stringify(rawResponse ?? null)),
 		},
 	});
@@ -38,7 +37,6 @@ const initiatePayment = async (user: IAuthUser, complaintId: string) => {
 
 	const transactionId = `TXN-${randomUUID()}`;
 	const amount = complaint.category.serviceFee;
-
 
 	const payment = await prisma.$transaction(async (tx) => {
 		await tx.payment.updateMany({
@@ -94,7 +92,6 @@ const handleCallback = async (paymentID?: string, bkashStatus?: string) => {
 		where: { gatewayRef: paymentID },
 	});
 	if (!payment) throw new AppError(status.NOT_FOUND, "Payment not found");
-
 
 	if (payment.status !== "PENDING") return payment;
 

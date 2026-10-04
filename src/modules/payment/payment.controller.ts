@@ -25,7 +25,6 @@ const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 
 	const paid = payment.status === "PAID";
 
-
 	res.status(paid ? status.OK : status.PAYMENT_REQUIRED).json({
 		success: paid,
 		message: paid

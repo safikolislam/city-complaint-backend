@@ -16,7 +16,6 @@ router.post(
 	PaymentController.initiatePayment,
 );
 
-
 router.get("/callback", PaymentController.bkashCallback);
 
 router.get(
