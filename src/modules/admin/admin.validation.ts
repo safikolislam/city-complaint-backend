@@ -4,7 +4,7 @@ const updateRoleSchema = z.object({
 	body: z
 		.object({
 			role: z.enum(["CITIZEN", "STAFF", "ADMIN"]),
-			staffPosition: z.enum(["OFFICER", "TECHNICIAN", "MANAGER"]).optional(),
+			staffPosition: z.enum(["OFFICER", "TECHNICIAN"]).optional(),
 			departmentId: z.uuid().optional(),
 		})
 		.refine((d) => d.role !== "STAFF" || (d.staffPosition && d.departmentId), {

@@ -31,7 +31,7 @@ const createComplaint = async (
 		throw new AppError(status.NOT_FOUND, "Category not found");
 	}
 
-	// fee থাকলে paid service request, payment-এর আগে কাজ শুরু হবে না
+
 	const needsPayment = category.serviceFee !== null;
 	const initialStatus = needsPayment ? "PENDING_PAYMENT" : "PENDING";
 
