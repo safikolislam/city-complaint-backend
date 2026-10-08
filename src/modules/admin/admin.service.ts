@@ -51,7 +51,7 @@ const updateUserRole = async (
 	targetId: string,
 	payload: {
 		role: TRole;
-		staffPosition?: "OFFICER" | "TECHNICIAN" | "MANAGER";
+		staffPosition?: "OFFICER" | "TECHNICIAN" ;
 		departmentId?: string;
 	},
 ) => {
