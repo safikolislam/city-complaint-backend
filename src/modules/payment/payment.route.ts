@@ -8,7 +8,7 @@ import { paymentLimiter } from "../../middlewares/rateLimiter";
 
 const router = Router();
 
-router.post(
+router.post( 
 	"/initiate",
 	paymentLimiter,
 	auth("CITIZEN"),

@@ -1,7 +1,12 @@
 import type { Prisma } from "../../../../prisma/generated/prisma/client";
 import { prisma } from "../../../lib/prisma";
 import type { IAuthUser, TStatus } from "../complaint.interface";
-import { buildMeta, getPagination, STATUSES } from "./complaint.shared";
+import {
+	buildMeta,
+	getPagination,
+	getStaffProfile,
+	STATUSES,
+} from "./complaint.shared";
 
 const getMyAssigned = async (
 	user: IAuthUser,
@@ -39,4 +44,21 @@ const getMyAssigned = async (
 	return { data, meta: buildMeta(page, limit, total) };
 };
 
-export const ComplaintAssignedService = { getMyAssigned };
+
+const getTechnicians = async (user: IAuthUser) => {
+	const actor = await getStaffProfile(user.id);
+
+	return prisma.user.findMany({
+		where: {
+			role: "STAFF",
+			staffPosition: "TECHNICIAN",
+			isActive: true,
+			deletedAt: null,
+			departmentId: actor.departmentId,
+		},
+		select: { id: true, name: true, email: true },
+		orderBy: { name: "asc" },
+	});
+};
+
+export const ComplaintAssignedService = { getMyAssigned, getTechnicians };

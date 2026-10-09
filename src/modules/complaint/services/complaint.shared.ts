@@ -23,7 +23,7 @@ export const SORT_FIELDS = [
 	"status",
 ] as const;
 
-// pagination-এর page/limit একবারই হিসাব করা
+
 export const getPagination = (
 	query: Record<string, unknown>,
 	defaultLimit = 10,
@@ -40,7 +40,7 @@ export const buildMeta = (page: number, limit: number, total: number) => ({
 	totalPage: Math.ceil(total / limit),
 });
 
-// কে কোন complaint দেখতে পারবে
+
 export const visibilityFilter = async (
 	user: IAuthUser,
 ): Promise<Prisma.ComplaintWhereInput> => {

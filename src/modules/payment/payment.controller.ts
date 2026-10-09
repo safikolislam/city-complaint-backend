@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import status from "http-status";
+import config from "../../config";
 import { catchAsync } from "../../utils/catchASync";
 import { sendResponse } from "../../utils/sendResponse";
 import { PaymentService } from "./payment.service";
@@ -17,21 +18,24 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+
 const bkashCallback = catchAsync(async (req: Request, res: Response) => {
-	const payment = await PaymentService.handleCallback(
-		String(req.query.paymentID ?? ""),
-		String(req.query.status ?? ""),
-	);
+	const target = (path: string, complaintId?: string) => {
+		const url = new URL(path, config.frontend_url);
+		if (complaintId) url.searchParams.set("complaintId", complaintId);
+		return url.toString();
+	};
 
-	const paid = payment.status === "PAID";
-
-	res.status(paid ? status.OK : status.PAYMENT_REQUIRED).json({
-		success: paid,
-		message: paid
-			? "Payment successful"
-			: `Payment ${payment.status.toLowerCase()}`,
-		data: { id: payment.id, status: payment.status },
-	});
+	try {
+		const payment = await PaymentService.handleCallback(
+			String(req.query.paymentID ?? ""),
+			String(req.query.status ?? ""),
+		);
+		const page = payment.status === "PAID" ? "success" : "cancel";
+		res.redirect(target(`/payment/${page}`, payment.complaintId));
+	} catch {
+		res.redirect(target("/payment/cancel"));
+	}
 });
 
 const getPaymentById = catchAsync(async (req: Request, res: Response) => {

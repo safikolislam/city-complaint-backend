@@ -121,6 +121,16 @@ const getMyAssigned = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const getTechnicians = catchAsync(async (req: Request, res: Response) => {
+	const data = await ComplaintService.getTechnicians(req.user!);
+
+	sendResponse(res, {
+		statusCode: status.OK,
+		message: "Technicians retrieved successfully",
+		data,
+	});
+});
+
 export const ComplaintController = {
 	createComplaint,
 	getAllComplaints,
@@ -131,4 +141,5 @@ export const ComplaintController = {
 	changeStatus,
 	cancelComplaint,
 	getMyAssigned,
+	getTechnicians,
 };
