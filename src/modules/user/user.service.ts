@@ -8,6 +8,8 @@ const profileSelect = {
 	email: true,
 	phone: true,
 	role: true,
+	staffPosition: true,
+	departmentId: true,
 	createdAt: true,
 	updatedAt: true,
 } as const;
