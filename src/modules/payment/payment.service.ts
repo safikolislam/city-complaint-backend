@@ -5,6 +5,12 @@ import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppError";
 import { createBkashPayment, executeBkashPayment } from "../../utils/bkash";
 import type { IAuthUser } from "../complaint/complaint.interface";
+import {
+	buildMeta,
+	getPagination,
+} from "../complaint/services/complaint.shared";
+
+const PAYMENT_STATUSES = ["PENDING", "PAID", "FAILED", "CANCELLED"] as const;
 
 const markUnpaid = async (
 	id: string,
@@ -185,8 +191,59 @@ const getPaymentById = async (user: IAuthUser, id: string) => {
 	return payment;
 };
 
+const getAllPayments = async (
+	user: IAuthUser,
+	query: Record<string, unknown>,
+) => {
+	const { page, limit, skip } = getPagination(query);
+	const statusFilter = PAYMENT_STATUSES.find((s) => s === query.status);
+
+	const where = {
+		...(user.role === "ADMIN" ? {} : { userId: user.id }),
+		...(statusFilter ? { status: statusFilter } : {}),
+	};
+
+	const [rows, total] = await Promise.all([
+		prisma.payment.findMany({
+			where,
+			skip,
+			take: limit,
+			orderBy: { createdAt: "desc" },
+			select: {
+				id: true,
+				complaintId: true,
+				amount: true,
+				currency: true,
+				gateway: true,
+				status: true,
+				transactionId: true,
+				paidAt: true,
+				createdAt: true,
+			},
+		}),
+		prisma.payment.count({ where }),
+	]);
+
+	const complaints = await prisma.complaint.findMany({
+		where: { id: { in: rows.map((row) => row.complaintId) } },
+		select: { id: true, title: true },
+	});
+	const titleById = new Map(complaints.map((c) => [c.id, c.title]));
+
+	const data = rows.map((row) => ({
+		...row,
+		complaint: {
+			id: row.complaintId,
+			title: titleById.get(row.complaintId) ?? "Complaint not found",
+		},
+	}));
+
+	return { data, meta: buildMeta(page, limit, total) };
+};
+
 export const PaymentService = {
 	initiatePayment,
 	handleCallback,
 	getPaymentById,
+	getAllPayments,
 };

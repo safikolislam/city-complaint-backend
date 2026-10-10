@@ -5,6 +5,7 @@ import { catchAsync } from "../../utils/catchASync";
 import { sendResponse } from "../../utils/sendResponse";
 import { PaymentService } from "./payment.service";
 
+
 const initiatePayment = catchAsync(async (req: Request, res: Response) => {
 	const data = await PaymentService.initiatePayment(
 		req.user!,
@@ -17,7 +18,6 @@ const initiatePayment = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
-
 
 const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 	const target = (path: string, complaintId?: string) => {
@@ -38,6 +38,20 @@ const bkashCallback = catchAsync(async (req: Request, res: Response) => {
 	}
 });
 
+const getAllPayments = catchAsync(async (req: Request, res: Response) => {
+	const { data, meta } = await PaymentService.getAllPayments(
+		req.user!,
+		req.query,
+	);
+
+	sendResponse(res, {
+		statusCode: status.OK,
+		message: "Payments retrieved successfully",
+		meta,
+		data,
+	});
+});
+
 const getPaymentById = catchAsync(async (req: Request, res: Response) => {
 	const data = await PaymentService.getPaymentById(
 		req.user!,
@@ -54,5 +68,6 @@ const getPaymentById = catchAsync(async (req: Request, res: Response) => {
 export const PaymentController = {
 	initiatePayment,
 	bkashCallback,
+	getAllPayments,
 	getPaymentById,
 };

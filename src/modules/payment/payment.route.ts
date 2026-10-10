@@ -1,14 +1,13 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth/auth";
-
+import { paymentLimiter } from "../../middlewares/rateLimiter";
 import validateRequest from "../../middlewares/validateRequest";
 import { PaymentController } from "./payment.controller";
 import { PaymentValidation } from "./payment.validation";
-import { paymentLimiter } from "../../middlewares/rateLimiter";
 
 const router = Router();
 
-router.post( 
+router.post(
 	"/initiate",
 	paymentLimiter,
 	auth("CITIZEN"),
@@ -17,6 +16,8 @@ router.post(
 );
 
 router.get("/callback", PaymentController.bkashCallback);
+
+router.get("/", auth("CITIZEN", "ADMIN"), PaymentController.getAllPayments);
 
 router.get(
 	"/:id",
