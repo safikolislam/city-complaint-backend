@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import status from "http-status";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
@@ -7,6 +9,8 @@ import { createToken, hashToken, verifyToken } from "../../utils/jwt";
 import type { ILoginPayload, IRegisterPayload } from "./auth.interface";
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const registerUserIntoDB = async (payload: IRegisterPayload) => {
 	const { name, email, password, phone } = payload;
@@ -84,6 +88,70 @@ const loginUser = async (payload: ILoginPayload) => {
 	};
 };
 
+const loginWithGoogle = async (idToken: string) => {
+	let googleUser: { email: string; name: string };
+
+	try {
+		const ticket = await googleClient.verifyIdToken({
+			idToken,
+			audience: process.env.GOOGLE_CLIENT_ID,
+		});
+		const data = ticket.getPayload();
+
+		if (!data?.email || !data.email_verified) {
+			throw new Error("Email not verified");
+		}
+		googleUser = { email: data.email, name: data.name ?? data.email };
+	} catch {
+		throw new AppError(status.UNAUTHORIZED, "Invalid Google token");
+	}
+
+	let user = await prisma.user.findUnique({
+		where: { email: googleUser.email },
+	});
+
+	if (!user) {
+		const passwordHash = await bcrypt.hash(
+			randomUUID(),
+			Number(config.bcrypt_salt_rounds),
+		);
+		user = await prisma.user.create({
+			data: { name: googleUser.name, email: googleUser.email, passwordHash },
+		});
+	}
+
+	if (user.deletedAt || !user.isActive) {
+		throw new AppError(status.UNAUTHORIZED, "User not found or inactive");
+	}
+
+	const tokenPayload = { id: user.id, role: user.role };
+
+	const accessToken = createToken(
+		tokenPayload,
+		config.jwt_access_secret as string,
+		config.jwt_access_expires_in as string,
+	);
+	const refreshToken = createToken(
+		tokenPayload,
+		config.jwt_refresh_secret as string,
+		config.jwt_refresh_expires_in as string,
+	);
+
+	await prisma.refreshToken.create({
+		data: {
+			tokenHash: hashToken(refreshToken),
+			userId: user.id,
+			expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
+		},
+	});
+
+	return {
+		accessToken,
+		refreshToken,
+		user: { id: user.id, name: user.name, email: user.email, role: user.role },
+	};
+};
+
 const refreshAccessToken = async (token?: string) => {
 	if (!token) {
 		throw new AppError(status.UNAUTHORIZED, "Refresh token missing");
@@ -151,6 +219,7 @@ const logoutUser = async (token?: string) => {
 export const AuthService = {
 	registerUserIntoDB,
 	loginUser,
+	loginWithGoogle,
 	refreshAccessToken,
 	logoutUser,
 };
