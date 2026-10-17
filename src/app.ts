@@ -14,6 +14,7 @@ import { categoryRoutes } from "./modules/category/category.route";
 import { complaintRoutes } from "./modules/complaint/complaint.route";
 import { UserRoutes } from "./modules/user/user.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
+import { publicRoutes } from "./modules/public/public.route";
 
 const app: Application = express();
 
@@ -67,6 +68,7 @@ app.get("/", (_req: Request, res: Response) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", UserRoutes);
 app.use("/api/v1/complaints", complaintRoutes);
+app.use("/api/v1/public", publicRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/payments", paymentRoutes);
